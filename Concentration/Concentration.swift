@@ -10,19 +10,15 @@ import Foundation
 
 class Concentration{
     private(set) var cards = [Card]()
+    weak var delegate: ViewController?
+    private(set) var score = 0 {
+        didSet{
+            delegate?.setScore(score:score)
+        }
+    }
     private var indexOfLastCard: Int? {
         get {
-            var index: Int?
-            for i in cards.indices {
-                if cards[i].isFacedUp {
-                    if index != nil {
-                        return nil
-                    } else {
-                        index = i
-                    }
-                }
-            }
-            return index
+            return cards.indices.filter{ return cards[$0].isFacedUp }.oneAndOnly()
         }
         set {
             for index in cards.indices {
@@ -35,16 +31,25 @@ class Concentration{
         if !cards[index].isMatched {
             if let matched = indexOfLastCard, matched != index {
                 //check if both are same
-                if cards[matched].identifier == cards[index].identifier {
+                if cards[matched] == cards[index] {
                     cards[index].isMatched = true
                     cards[matched].isMatched = true
+                    score += 2
+                } else if cards[index].flipCount > 0 {
+                    score -= 1
                 }
+                
                 cards[index].isFacedUp = true
+                
             } else {
+                if cards[index].flipCount > 0 {
+                    score -= 1
+                }
                 indexOfLastCard = index
             }
         }
     }
+    
     
     init(numOfCardPairs n: Int) {
         for _ in 0 ..< n {
@@ -52,5 +57,11 @@ class Concentration{
             cards += [card,card]
         }
         cards.shuffle()
+    }
+}
+
+extension Collection{
+    func oneAndOnly() -> Element? {
+        return count == 1 ? first : nil
     }
 }

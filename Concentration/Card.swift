@@ -8,10 +8,24 @@
 
 import Foundation
 
-struct Card{
-    var isFacedUp = false
+struct Card: Hashable
+{
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(self.identifier)
+    }
+    static func ==(l: Card, r: Card)->Bool{
+        return l.identifier == r.identifier
+    }
+    private(set) var flipCount = 0
+    var isFacedUp = false {
+        willSet {
+            if newValue, !isFacedUp {
+                flipCount+=1
+            }
+        }
+    }
     var isMatched = false
-    var identifier: Int
+    private var identifier: Int
     private static var myIdentifierFactory = 1000
     
     init() {

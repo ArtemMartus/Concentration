@@ -18,27 +18,38 @@ class ViewController: UIViewController {
     
     private lazy var game = Concentration(numOfCardPairs: numOfPairsOfCards)
     
-    @IBOutlet private weak var statsLabel: UILabel!
-    private var emojiArray = ["👻","👾","👹","🤖","🎃","👺","☠️","👽"]
-    private(set) var flipCount = 0 {
-        didSet{
-            statsLabel.text = "Flips: \(flipCount)"
-        }
+    func setScore(score:Int) {
+        self.statsLabel.text = "Score: \(score)"
     }
+    
+    @IBOutlet private weak var statsLabel: UILabel!
+    private let themes = [Theme(emojiArray: ["👻","👾","👹","🤖","🎃","👺","☠️","👽"]),
+                          Theme(emojiArray: ["💋","👅","🤙🏻","👂🏻","💄","🧓🏻","👨🏻‍🎤","🙋🏻‍♂️"]),
+                          Theme(emojiArray: ["🦁","🐭","🙈","🙉","🐶","🐱","🦊","🐼"]),
+                          Theme(emojiArray: ["🐠","🐟","🐬","🐳","🐋","🦈","🐡","🐙"]),
+                          Theme(emojiArray: ["🌞","🌝","🌚","🌕","🌏","⭐️","☄️","🌙"]),
+                          Theme(emojiArray: ["🥑","🍆","🍅","🥕","🥐","🥬","🌶","🌽"]),]
+    
+    private var emojiArray = [String]()
     
     @IBAction private func cardTouched(_ button: UIButton) {
         let emojiIndex = buttons.firstIndex(of: button)!
         
         game.chooseCard(at: emojiIndex)
         updateFromModel()
-        flipCount += 1
     }
     
     @IBAction private func newGamePressed(_ sender: UIButton) {
-        flipCount = 0
-        game = Concentration(numOfCardPairs: (1 + buttons.count) / 2)
-        emoji = [Int:String]()
+        newGame()
+    }
+    
+    private func newGame(){
+        setScore(score: 0)
+        game = Concentration(numOfCardPairs: numOfPairsOfCards)
+        game.delegate = self
+        emoji = [Card:String]()
         updateFromModel()
+        emojiArray = themes[Int.random(in: 0..<themes.count)].emojiArray
     }
     
     private func updateFromModel(){
@@ -55,17 +66,18 @@ class ViewController: UIViewController {
         }
     }
     
-    private var emoji = [Int:String]()
+    private var emoji = [Card:String]()
     
     private func emoji(for card: Card) -> String{
-        if emoji[card.identifier] == nil, emojiArray.count > 0 {
-            emoji[card.identifier] = emojiArray.remove(at: Int.random(in: 0 ... emojiArray.count))
+        if emoji[card] == nil, emojiArray.count > 0 {
+            emoji[card] = emojiArray.remove(at: Int.random(in: 0 ..< emojiArray.count))
         }
-        return  emoji[card.identifier] ?? "?"
+        return  emoji[card] ?? "?"
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        newGame()
         // Do any additional setup after loading the view.
     }
     
